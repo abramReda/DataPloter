@@ -4,5 +4,7 @@ public enum LineType
 {
     None,
     DashLine,
-    StraightLine
+    StraightLine,
+    MainAxisline,
+    GuideAxisline
 }

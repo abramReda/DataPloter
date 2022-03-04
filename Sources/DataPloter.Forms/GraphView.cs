@@ -13,9 +13,20 @@ using Xamarin.Forms;
 public class GraphView : SKCanvasView
 {
 
+    readonly Axis _axis;
     public GraphView()
     {
-        this.PaintSurface += new EventHandler<SKPaintSurfaceEventArgs>(this.OnCanvasViewPaintSurface);
+        PaintSurface += new EventHandler<SKPaintSurfaceEventArgs>(OnCanvasViewPaintSurface);
+        // adding pinch Gesture for zooming
+        var pinchGesture = new PinchGestureRecognizer();
+        pinchGesture.PinchUpdated += OnPinchUpdated;
+        GestureRecognizers.Add(pinchGesture);
+
+        var panGesture = new PanGestureRecognizer();
+        panGesture.PanUpdated += OnPanUpdated;
+        GestureRecognizers.Add(panGesture);
+        _axis = new Axis();
+        
     }
 
     public static readonly BindableProperty GraphProperty = BindableProperty.Create(
@@ -43,7 +54,6 @@ public class GraphView : SKCanvasView
             SetValue(GraphView.GraphProperty,value);
         }
     }
-
     private void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs args)
     {
         SKImageInfo info = args.Info;
@@ -51,16 +61,33 @@ public class GraphView : SKCanvasView
 
         canvas.Clear();
 
-        Axis axis = new(canvas, info)
-        {
-            YRang = (0, 10),
-            XRang = (100, 120),
-            XStep = 3,
-            YStep = 1,
-        };
+        _axis.Init(canvas, info);
 
         // axis.ShowGrid();
-        axis.DrawGraph(GraphData);
+        _axis.DrawGraph(GraphData);
+    }
+
+    void OnPinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
+    {
+        if (e.Status == GestureStatus.Running)
+        {
+            Console.WriteLine($"In the Zoom {e.Scale} scale");
+            _axis.ZoomInOut(2-e.Scale);
+            InvalidateSurface();
+
+        }
+    }
+
+    void OnPanUpdated(object sender, PanUpdatedEventArgs e)
+    {
+        switch (e.StatusType)
+        {
+            case GestureStatus.Running:
+                _axis.Translate(e.TotalX/20, e.TotalY/20);
+                Console.WriteLine("Translate the axis");
+                InvalidateSurface();
+                break;
+        }
     }
 
 }
