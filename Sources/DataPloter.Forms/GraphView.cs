@@ -29,7 +29,7 @@ public class GraphView : SKCanvasView
         
     }
 
-    public static readonly BindableProperty GraphProperty = BindableProperty.Create(
+    public static readonly BindableProperty GraphDataProperty = BindableProperty.Create(
         nameof(GraphData),
         typeof(GraphInfo),
         typeof(GraphView),
@@ -47,11 +47,11 @@ public class GraphView : SKCanvasView
     {
         get
         {
-            return (GraphInfo)GetValue(GraphView.GraphProperty);
+            return (GraphInfo)GetValue(GraphView.GraphDataProperty);
         }
         set
         {
-            SetValue(GraphView.GraphProperty,value);
+            SetValue(GraphView.GraphDataProperty, value);
         }
     }
     private void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs args)
