@@ -5,7 +5,15 @@
     <LangVersion>10</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Authors>Ibram Redda</Authors>
+    <Authors>Ibram Reda</Authors>
+    <Description>plot data using skiaSharp</Description>
+    <PackageProjectUrl>https://github.com/abramReda/DataPloter</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/abramReda/DataPloter</RepositoryUrl>
+    <PackageTags>Plot, Graph, SkiaSharp, matlab plot</PackageTags>
+    <AssemblyVersion>0.0.0.1</AssemblyVersion>
+    <FileVersion>0.0.0.1</FileVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>0.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
