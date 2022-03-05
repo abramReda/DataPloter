@@ -22,11 +22,11 @@ namespace DataPloter.Sampels.Forms
             {
                 data.Add(new()
                 {
-                    XCoordinate = i,
+                    Date = DateTime.Now.AddDays(i*2),
                     YCoordinate = i
                 });
             }
-            graphView.GraphData = new()
+            graphView.GraphData = new(Constans.GraphType.TimeGraph,DateTime.Now)
             {
                 Points = data,
                 GraphColor = SKColors.Black,

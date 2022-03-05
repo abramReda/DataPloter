@@ -3,9 +3,84 @@
 using DataPloter.Constans;
 using SkiaSharp;
 using System.Linq;
+using static Helper;
+public class SingleAxis
+{
+    /// <summary>
+    /// Get how many pixel to represent a single unit
+    /// </summary>
+    public Double PixelPerUnit => Length / TotalUnites;
+    /// <summary>
+    /// get or set Width of  Axis in pixel
+    /// </summary>
+    public double Length { get; set; }
 
+    /// <summary>
+    /// get or set Coordinate Range For the Axis
+    /// </summary>
+    public (double Start,double End) Rang { get; set; } = (0f, 10f);
+
+    /// <summary>
+    /// get totlal Distance unit 
+    /// </summary>
+    public double TotalUnites => Rang.End - Rang.Start;
+
+    /// <summary>
+    /// Get Step
+    /// </summary>
+    /// <remarks>
+    /// Distanse Between Visable perpendicular line on the Axis
+    /// </remarks>
+    public double Step => TotalUnites / 10f;
+
+
+    /// <summary>
+    /// Transform coordinate(distanse) to Pixel World
+    /// </summary>
+    /// <param name="coordinate">x coordinate </param>
+    /// <returns></returns>
+    public int Coordinate2Pixel(double coordinate)
+# warning need to use scale transform insted of subtract
+    => (int)((coordinate - Rang.Start) * PixelPerUnit);
+
+    public double Pixel2XCoordinate(double Pixel)
+    => (Pixel / PixelPerUnit);
+}
 public class Axis
 {
+
+    #region private Field
+    private bool _FirstGraphRander = true;
+    private readonly SingleAxis _xAxis = new();
+    private readonly SingleAxis _yAxis = new();
+
+    private readonly SKPaint _axisPaint = new()
+    {
+        Style = SKPaintStyle.Fill,
+        Color = SKColor.Parse("#767676")
+    };
+    private readonly SKPaint _mainAxisPaint = new()
+    {
+        Style = SKPaintStyle.Fill,
+        Color = SKColors.Black,
+        StrokeWidth = 2
+    };
+    private readonly SKPaint _pointPaint = new()
+    {
+        Style = SKPaintStyle.Fill,
+        Color = SKColors.Yellow
+    };
+    private readonly SKPaint _textPaint = new()
+    {
+        Style = SKPaintStyle.Fill,
+        Color = SKColors.Yellow,
+        TextSize = 32,
+    };
+    private SKCanvas? _canvas = null;
+    #endregion
+
+
+    #region Constractors
     public Axis()
     {
 
@@ -15,101 +90,34 @@ public class Axis
         Init(canvas, info);
 
     }
+    #endregion
 
     public void Init(SKCanvas canvas, SKImageInfo info)
     {
         _canvas = canvas;
-        AxisWidth = (int)(info.Width * 0.8);
-        AxisHeight = (int)(info.Height * 0.8);
+        _xAxis.Length = info.Width * 0.8;
+        _yAxis.Length = info.Height * 0.8;
 
         _canvas.Translate((int)(info.Width * 0.1), (int)(info.Height * 0.1));
     }
-    private float PixelPerUintX => AxisWidth / TotalXUnite;
-    private float PixelPerUintY => AxisHeight / TotalYUnite;
-    /// <summary>
-    /// Width of  Axis in pixel
-    /// </summary>
-    private int AxisWidth { get; set; }
-    /// <summary>
-    /// Height of Axis in pixel
-    /// </summary>
-    private int AxisHeight { get; set; }
-
-    /// <summary>
-    /// start point to end poind in Phsycal unit on X Axiss thet need to show
-    /// </summary>
-    public (float Start, float End) XRang { get; set; } = (0f, 10f);
-
-    /// <summary>
-    /// totlal phsyical unit needed in x axis
-    /// </summary>
-    public float TotalXUnite => XRang.End - XRang.Start;
-
-    /// <summary>
-    /// start point to end poind in Phsycal unit on Y Axiss thet need to show
-    /// </summary>
-    public (float Start, float End) YRang { get; set; } = (0f, 20f);
-    /// <summary>
-    /// totlal phsyical unit needed in y axis
-    /// </summary>
-    public float TotalYUnite => YRang.End - YRang.Start;
-
-    /// <summary>
-    /// Get XStep
-    /// </summary>
-    /// <remarks>
-    /// Distanse Between Vertical line on the Grid
-    /// </remarks>
-    public float XStep => TotalXUnite / 10f;
-
     
 
-    /// <summary>
-    /// Get YStep
-    /// </summary>
-    /// <remarks>
-    /// Distanse Between Herozontal line on the Grid
-    /// </remarks>
-    public float YStep => TotalYUnite / 10f;
-
-    readonly SKPaint _axisPaint = new ()
-    {
-        Style = SKPaintStyle.Fill,
-        Color = SKColor.Parse("#767676")
-    };
-    readonly SKPaint _mainAxisPaint = new()
-    {
-        Style = SKPaintStyle.Fill,
-        Color = SKColors.Black,
-        StrokeWidth = 2
-    };
-    readonly SKPaint _pointPaint = new ()
-    {
-        Style = SKPaintStyle.Fill,
-        Color = SKColors.Yellow
-    };
-    readonly SKPaint _textPaint = new ()
-    {
-        Style = SKPaintStyle.Fill,
-        Color = SKColors.Yellow,
-        TextSize = 32,
-    };
-    private  SKCanvas? _canvas = null;
-
-    public void ShowGrid()
+    public void ShowGrid(DateTime? Startdate = null)
     {
         // Draw Vertical Axis
-        for (float XLoc = XRang.Start; XLoc <= XRang.End; XLoc += XStep)
+        for (double XLoc = _xAxis.Rang.Start; XLoc <= _xAxis.Rang.End; XLoc += _xAxis.Step)
         {
-            DrawLine(XLoc, YRang.Start, XLoc, YRang.End,XLoc==XRang.Start?LineType.MainAxisline:LineType.GuideAxisline);
-            WritText(XLoc.ToString("0.0").PadRight(4), XLoc, YRang.Start - 0.5f * YStep);
+            DrawLine(XLoc, _yAxis.Rang.Start, XLoc, _yAxis.Rang.End,XLoc==_xAxis.Rang.Start?LineType.MainAxisline:LineType.GuideAxisline);
+            WritText(XLoc.ToString("0.0").PadRight(4), XLoc, _yAxis.Rang.Start - 0.5f * _yAxis.Step);
         }
 
         // Draw Herozontal Axis
-        for (float Yloc = YRang.Start; Yloc <= YRang.End; Yloc += YStep)
+        for (double Yloc = _yAxis.Rang.Start; Yloc <= _yAxis.Rang.End; Yloc += _yAxis.Step)
         {
-            DrawLine(XRang.Start, Yloc, XRang.End, Yloc, Yloc == YRang.Start ? LineType.MainAxisline : LineType.GuideAxisline);
-            WritText(Yloc.ToString("0.0").PadRight(4), XRang.Start - 0.7f *XStep, Yloc);
+            DrawLine(_xAxis.Rang.Start, Yloc, _xAxis.Rang.End, Yloc, Yloc == _yAxis.Rang.Start ? LineType.MainAxisline : LineType.GuideAxisline);
+            string label = Startdate == null ? Yloc.ToString("0.0").PadRight(4) :
+                Startdate?.AddDays(Yloc).ToString("d");
+            WritText(label, _xAxis.Rang.Start - 0.7f *_xAxis.Step, Yloc);
         }
     }
 
@@ -117,11 +125,11 @@ public class Axis
     {
         Console.WriteLine($"X : {totalX}");
         Console.WriteLine($"y : {totalY}");
-        var x = Pixel2XCoordinate((float)totalX);
-        var y = Pixel2YCoordinate((float)totalY);
+        var x = _xAxis.Pixel2XCoordinate(totalX);
+        var y = _yAxis.Pixel2XCoordinate(totalY);
         Console.WriteLine($"Converted x : {x}");
-        XRang = (XRang.Start - x, XRang.End - x);
-        YRang = (YRang.Start - y, YRang.End - y);
+        _xAxis.Rang = (_xAxis.Rang.Start - x, _xAxis.Rang.End - x);
+        _yAxis.Rang = (_yAxis.Rang.Start - y, _yAxis.Rang.End - y);
     }
 
     /// <summary>
@@ -139,13 +147,13 @@ public class Axis
     /// <param name="x1">x coordinate of second point</param>
     /// <param name="y1">y coordinate of second point</param>
     /// <param name="lineType">Not implemented yet</param>
-    public void DrawLine(float x0, float y0, float x1, float y1,LineType lineType=LineType.StraightLine)
+    public void DrawLine(double x0, double y0, double x1, double y1,LineType lineType=LineType.StraightLine)
     {
         // ToDo implement the line Type
-        var _x0 = XCordinate2Pixel(x0);
-        var _x1 = XCordinate2Pixel(x1);
-        var _y0 = YCordinate2Pixel(y0);
-        var _y1 = YCordinate2Pixel(y1);
+        var _x0 = _xAxis.Coordinate2Pixel(x0);
+        var _x1 = _xAxis.Coordinate2Pixel(x1);
+        var _y0 = _yAxis.Coordinate2Pixel(y0);
+        var _y1 = _yAxis.Coordinate2Pixel(y1);
         var paint = lineType switch
         {
             LineType.MainAxisline => _mainAxisPaint,
@@ -154,17 +162,21 @@ public class Axis
         _canvas?.DrawLine(_x0, _y0, _x1, _y1, paint);
     }
 
+    public void DrawPoint(GraphPoint p, float r = 16f)
+    {
+        DrawPoint(p.XCoordinate, p.YCoordinate,r);
+    }
     /// <summary>
     /// Drow a circule point
     /// </summary>
     /// <param name="x">x coordinate</param>
     /// <param name="y">y coordinate</param>
     /// <param name="r">redious of point</param>
-    public void DrawPoint(float x, float y,float r=16f)
+    public void DrawPoint(double x, double y, float r =16f)
     {
-        if (!isInRange(x, XRang) || !isInRange(y,YRang)) return;
-        var _x = XCordinate2Pixel(x);
-        var _y = YCordinate2Pixel(y);
+        if (!IsInRange(x, _xAxis.Rang) || !IsInRange(y,_yAxis.Rang)) return;
+        var _x = _xAxis.Coordinate2Pixel(x);
+        var _y = _yAxis.Coordinate2Pixel(y);
         _canvas?.DrawCircle(_x, _y, r, _pointPaint);
     }
 
@@ -174,69 +186,59 @@ public class Axis
     /// <param name="str"> string you want to add in axis</param>
     /// <param name="x">x coordinate</param>
     /// <param name="y">y coordinate</param>
-    public void WritText(string str, float x, float y)
+    public void WritText(string str, double x, double y)
     {
-        var _x = XCordinate2Pixel(x);
-        var _y = YCordinate2Pixel(y);
+        var _x = _xAxis.Coordinate2Pixel(x);
+        var _y = _yAxis.Coordinate2Pixel(y);
         _canvas?.DrawText(str, _x, _y, _textPaint);
 
     }
 
     public void ZoomInOut(double scale)
     {
-        float newWidth = (float)(TotalXUnite * scale);
-        float newHeight = (float)(TotalYUnite * scale);
+        double newWidth = _xAxis.TotalUnites * scale;
+        double newHeight =_yAxis.TotalUnites * scale;
         //var dw = (newWidth - TotalXUnite) / 2;
         //var dh = (newHeight - TotalYUnite) / 2;
 
         //XRang = (XRang.Start - dw , XRang.End + dw);
         //YRang = (YRang.Start - dh, YRang.End + dh);
 
-        XRang = (XRang.Start , XRang.Start + newWidth);
-        YRang = (YRang.Start , YRang.Start + newHeight);
+        _xAxis.Rang = (_xAxis.Rang.Start , _xAxis.Rang.Start + newWidth);
+        _yAxis.Rang = (_yAxis.Rang.Start , _yAxis.Rang.Start + newHeight);
 
     }
 
-    public void DrawGraph(GraphInfo graph)
+    public void DrawGraph(GraphInfo graph , bool ForceFoucase = false)
     {
-        var xMax = graph.Points.Max(p => p.XCoordinate);
-        var xmin = graph.Points.Min(p => p.XCoordinate);
+        if(graph.GraphType == GraphType.TimeGraph)
+        {
+            DateTime startedDate = (DateTime)graph.StartedDate;
+            // Generate location based on Time
+            foreach (var point in graph.Points)
+                point.XCoordinate = ((DateTime)point.Date - startedDate).Days;
+           
+        }
+        if (ForceFoucase || _FirstGraphRander)
+        {
+            _FirstGraphRander = false;
+            var xMax = graph.Points.Max(p => p.XCoordinate);
+            var xmin = graph.Points.Min(p => p.XCoordinate);
 
-        var yMax = graph.Points.Max(p => p.YCoordinate);
-        var ymin = graph.Points.Min(p => p.YCoordinate);
+            var yMax = graph.Points.Max(p => p.YCoordinate);
+            var ymin = graph.Points.Min(p => p.YCoordinate);
 
-        //XRang = (xmin, xMax);
-        //YRang = (ymin, yMax);
-
-        ShowGrid();
+            _xAxis.Rang = (xmin, xMax);
+            _yAxis.Rang = (ymin, yMax);
+        }
+        _canvas?.Clear();
+        ShowGrid(graph.StartedDate);
+        // Display Records
         foreach (var point in graph.Points)
         {
             DrawPoint(point.XCoordinate, point.YCoordinate);
         }
     }
 
-    /// <summary>
-    /// Transform X coordenate(distanse) to Pixel World
-    /// </summary>
-    /// <param name="cordinate">x Coordinate </param>
-    /// <returns></returns>
-    private int XCordinate2Pixel(float cordinate)
-# warning need to use scale transform insted of subtract
-    => (int)((cordinate - XRang.Start) * PixelPerUintX);
-
-    private float Pixel2XCoordinate(float Pixel)
-    => (Pixel/ PixelPerUintX);
-    private float Pixel2YCoordinate(float Pixel)
-    => (Pixel / PixelPerUintY);
-    private int YCordinate2Pixel(float cordinate)
-# warning need to use scale transform insted of subtract
-    => (int)((cordinate - YRang.Start) * PixelPerUintY);
-
-    private bool isInRange(float value,(float start,float end) Range)=> value >=Range.start && value <= Range.end;
-
-    private float GetInRange(float value,(float start,float end) Range)
-    {
-        return Math.Min(Range.end, Math.Max(value, Range.start));
-    }
     
 }

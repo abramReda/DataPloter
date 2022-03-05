@@ -63,7 +63,7 @@ public class GraphView : SKCanvasView
 
         _axis.Init(canvas, info);
 
-        // axis.ShowGrid();
+        //_axis.ShowGrid();
         _axis.DrawGraph(GraphData);
     }
 
